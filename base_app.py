@@ -256,13 +256,34 @@ def main():
 	selection = st.sidebar.selectbox("Choose Option", options)
 	# Building out the "Information" page
 	if selection == "About Predict":
-		st.info("General Information")
+		title_tag("Climate Change Sentiment Analysis")
 		# You can read a markdown file from supporting resources folder
-		st.markdown("Some information here")
+		st.image('resources/twitter.png', caption='Tweeet Attack',use_column_width=True)
 
-		st.subheader("Raw Twitter data and label")
-		if st.checkbox('Show raw data'): # data is hidden if box is unchecked
-			st.write(raw[['sentiment', 'message']]) # will write the df to the page
+		st.markdown("<h3 style='color:#00ACEE'>Introduction</h3><br/>",unsafe_allow_html=True)
+		components.html(
+			"""
+			<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css" integrity="sha384-TX8t27EcRE3e/ihU7zmQxVncDAy5uIKz4rEkgIXeMed4M0jlfIDPvg6uqKI2xXr2" crossorigin="anonymous" />
+			<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+			<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ho+j7jyWK8fNQe+A12Hb8AhRq26LrZ/JpcUGGOn+Y7RsweNrtN/tE3MoK7ZeZDyx" crossorigin="anonymous"></script>
+			<style></style>
+			<div class="d-flex justify-content-center">
+				<p class="font-weight-bold">Given the recent explosion of Big Data, there is a growing demand for analyzing non traditional data sources. Social Media data is a huge source of this data in the form of chats, messages, news feeds and all of it is in an unstructured form. Text analytics is a process that helps analyze this unstructured data and look for patterns or infer popular sentiment which can help organizations in their decision making.</p>
+			</div>
+			"""
+		)
+		title_tag("Problem Statement")
+		components.html(
+			"""
+			<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css" integrity="sha384-TX8t27EcRE3e/ihU7zmQxVncDAy5uIKz4rEkgIXeMed4M0jlfIDPvg6uqKI2xXr2" crossorigin="anonymous" />
+			<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+			<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ho+j7jyWK8fNQe+A12Hb8AhRq26LrZ/JpcUGGOn+Y7RsweNrtN/tE3MoK7ZeZDyx" crossorigin="anonymous"></script>
+			<style></style>
+			<div class="d-flex justify-content-center">
+				<p class="font-weight-bold">Increase Thrive Market’s advertising efficiency by using machine learning to create effective marketing tools that can identify whether or not a person believes in climate change and could possibly be converted to a new customer based on their tweets.</p>
+			</div>
+			"""
+		)
 
 	# Building out the predication page
 	if selection == "Text Classification":
