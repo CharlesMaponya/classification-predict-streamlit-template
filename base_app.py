@@ -268,7 +268,8 @@ def main():
 			<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ho+j7jyWK8fNQe+A12Hb8AhRq26LrZ/JpcUGGOn+Y7RsweNrtN/tE3MoK7ZeZDyx" crossorigin="anonymous"></script>
 			<style></style>
 			<div class="d-flex justify-content-center">
-				<p class="font-weight-bold">Given the recent explosion of Big Data, there is a growing demand for analyzing non traditional data sources. Social Media data is a huge source of this data in the form of chats, messages, news feeds and all of it is in an unstructured form. Text analytics is a process that helps analyze this unstructured data and look for patterns or infer popular sentiment which can help organizations in their decision making.</p>
+				<p class="font-weight-bold"><i>Text analytics</i> is the automated process of translating large volumes of unstructured text into quantitative data to uncover insights, trends, and patterns. combined with data visualization tools, this technique enables companies to understand the story behind the numbers and make better decisions. In this notebook we will look into a concept called sentiment analysis using tweets.
+ <i>Sentiment analysis</i> (also known as opinion mining or emotion AI) refers to the use of natural language processing, text analysis, computational linguistics, and biometrics to systematically identify, extract, quantify, and study affective states and subjective information</p>
 			</div>
 			"""
 		)
@@ -284,7 +285,7 @@ def main():
 			</div>
 			"""
 		)
-
+		st.image('https://dropnerblog.files.wordpress.com/2019/12/twitter-bird-animated-logo.gif?w=300&zoom=2',use_column_width=True)
 	# Building out the predication page
 	if selection == "Text Classification":
 		markup(selection)
