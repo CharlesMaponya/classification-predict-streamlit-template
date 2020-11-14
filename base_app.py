@@ -27,7 +27,7 @@ import joblib,os
 import nltk
 import string
 import re
-import contractions
+#import contractions
 from nltk.corpus import stopwords, wordnet
 from nltk.tokenize import word_tokenize
 from nltk.stem import WordNetLemmatizer
@@ -112,7 +112,7 @@ st.cache(suppress_st_warning=True,allow_output_mutation=True)
 def data_cleaning(df):
     wnl = WordNetLemmatizer()
     df['message'] = df['message'].apply(mentions)
-    df['message'] = df['message'].apply(lambda x: contractions.fix(x))
+    #df['message'] = df['message'].apply(lambda x: contractions.fix(x))
     df['message'] = df['message'].str.replace(r"http\S+|www.\S+", "", case=False)
     df['message'] = df['message'].map(lambda x: remove_punc(str(x)))
     df['message'] = df['message'].apply(word_tokenize)
