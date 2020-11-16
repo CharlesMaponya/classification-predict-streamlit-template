@@ -42,6 +42,7 @@ from sklearn.svm import LinearSVC
 from sklearn.pipeline import Pipeline
 from sklearn.feature_extraction.text import TfidfVectorizer
 from collections import Counter
+from nltk.sentiment import SentimentIntensityAnalyzer
 
 warnings.filterwarnings(action = 'ignore') 
 
@@ -61,6 +62,64 @@ raw = pd.read_csv("resources/train.csv")
 retweet = 'RT'
 mask = np.array(Image.open('resources/10wmt-superJumbo-v4.jpg'))
 import streamlit.components.v1 as components
+
+
+def sentiment_visual(df1_train):
+	sid = SentimentIntensityAnalyzer()
+	df1_train['scores'] = df1_train['message'].apply(lambda review: sid.polarity_scores(review))
+	df1_train['compound']  = df1_train['scores'].apply(lambda score_dict: score_dict['compound'])
+	df1_train['comp_score'] = df1_train['compound'].apply(sent_decider)
+	fig, axis = plt.subplots(ncols=2, figsize=(15, 5))
+	ax = sns.countplot(x='comp_score', data=df1_train, palette='winter', hue='sentiment', ax=axis[0])
+	axis[0].set_title('Number of Tweets Per Vader Sentiment',fontsize=14)
+	axis[0].set_xlabel('')
+	axis[0].set_ylabel('Tweets')
+	put_numbers_on_bars(ax)
+	ax = sns.countplot(x='sentiment', data=df1_train, palette='winter', hue='comp_score', ax=axis[1])
+	axis[1].set_title('Number of Tweets Per Sentiment Class',fontsize=14)
+	axis[1].set_xlabel('')
+	axis[1].set_ylabel('')
+	put_numbers_on_bars(ax)
+	plt.show()
+	fig, axis = plt.subplots(ncols=2, figsize=(15, 5))
+	counts = (df1_train.groupby(['comp_score'])['sentiment'].value_counts(normalize=True).rename('percentage_tweets').mul(100).reset_index())
+	ax = sns.barplot(x="comp_score", y="percentage_tweets", palette='winter', hue="sentiment", data=counts, ax=axis[0])
+	put_numbers_on_bars(ax)
+	ax.set_xlabel('Vader Sentiment')
+	ax.set_ylabel('Tweets (%)')
+	count = (df1_train.groupby(['sentiment'])['comp_score'].value_counts(normalize=True).rename('percentage_tweets').mul(100).reset_index())
+	ax = sns.barplot(x="sentiment", y="percentage_tweets", palette='winter', hue="comp_score", data=count, ax=axis[1])
+	put_numbers_on_bars(ax)
+	plt.xlabel('Sentiment Class')
+	plt.ylabel('')
+	fig, axis = plt.subplots(ncols=4, figsize=(20, 5))
+	group = ["(Anti)", "(Neutral)", "(Pro)", "(News)"]
+	for i in range(4):
+		df1_train[df1_train['sentiment']==i-1]['comp_score'].value_counts().plot.pie(autopct='%1.1f%%',colormap='winter_r',ax=axis[i])
+		axis[i].set_title('Proportion of Tweets Per Vader Sentiment '+ group[i],fontsize=12)
+		axis[i].set_ylabel('')
+	plt.show()
+	st.pyplot()
+
+def put_numbers_on_bars(axis_object):
+    """
+    Function to plot labels above countplot bars.
+    """
+    for p in axis_object.patches:
+        axis_object.text(p.get_x() + p.get_width()/2., p.get_height(),'%d' % round(p.get_height()), fontsize=11,ha='center', va='bottom')
+
+def sent_decider(compound):
+    """
+    Function to determine if sentiment is positive, nuetral or negative.
+    """
+    neutral_point = 0.00
+    if compound > neutral_point:
+        return 'positive'#1
+    elif compound < -neutral_point:
+        return 'negative' #-1
+    else: 
+        return 'neutral'#0
+
 
 st.cache(suppress_st_warning=True,allow_output_mutation=True)
 def class_analysis(df):
@@ -270,7 +329,7 @@ def main():
 
 	# Creating sidebar with selection box -
 	# you can create multiple pages this way
-	options = ["About Predict","Text Classification","Exploratory Data Analysis","Model Metrics Evaluation","Our Team"]
+	options = ["About Predict","Text Classification","Exploratory Data Analysis","Model Metrics Evaluation"]
 	selection = st.sidebar.selectbox("Choose Option", options)
 	# Building out the "Information" page
 	if selection == "About Predict":
@@ -351,7 +410,7 @@ def main():
 		markup(selection)
 		print('....Cleaning the Raw data')
 		train = data_cleaning(raw)
-		visuals =["Sentiment Class Analysis","Message length for each sentiment class","Popular Words Analysis","Word Cloud Analysis"]
+		visuals =["Sentiment Class Analysis","Message length for each sentiment class","Popular Words Analysis","Word Cloud Analysis","Sentiment Analysis Insights"]
 		visualselection = st.selectbox("Choose EDA visuals",visuals)
 
 		if visualselection == "Sentiment Class Analysis":
@@ -430,8 +489,38 @@ def main():
 			title_tag("Evaluation Of the Ridge Classifier")
 			st.markdown("<h4 style='color:#00ACEE; text-align:center !important'>Ridge Classifier Confusion Matrix</h4>",unsafe_allow_html=True)
 			st.image('LinearSVC-cm.png',use_column_width=True)
+			st.markdown("""<div>
+				<h5 style='color:#00ACEE'>Key Observations</h5>
+				<p>A Classification report is used to measure the quality of predictions from a classification algorithm.The confusion matrix heatmap shows the model's ability to classify positive samples, each class achieving a recall score of:</p>
+				<ul>
+					<li>
+						Anti Climate Change : 0.46
+					</li>
+					<li>
+						Neutral : 0.5
+					</li>
+					<li>
+					Pro : 0.88
+					</li>
+					<li>
+					News : 0.81
+					</li>
+				</ul>
+				<p>The major concern here is that the Ridge classification classified 40% of of neutral tweets as Pro climate change tweets</p>
+			</div>""",unsafe_allow_html=True)
 			st.markdown("<h4 style='color:#00ACEE; text-align:center !important'>Linear Support Vector Classifier F1-Score predictive accuracy</h4>",unsafe_allow_html=True)
 			st.image('LinearSVC-f1-score.png',use_column_width=True)
+			st.markdown("""<div>
+				<h5 style='color:#00ACEE'>Key Observations</h5>
+				<p>The above bar graph shows the f1 score for each sentiment class using the Classificatio</p>
+				<ul>
+					<li>
+						Much like the LinearSVC we see that the the Ridge classifier does a really good job at classifying Pro sentiment class with a score of 0.85, followed by the News sentiment class with an f1 score of over 0.79.
+					</li>
+					<li>
+						Just like the support Vector Classifier, we see that Ridge Classifier does very good job at classifying the anti and neutral sentiment class
+					</li>
+			</div>""",unsafe_allow_html=True)
 		elif modeloptions =="Logisitic Regression Classifier":
 			title_tag("Evaluation Of the Logisitic Regression Classifier")
 			st.markdown("<h4 style='color:#00ACEE; text-align:center !important'>Logisitic Regression Classifier Confusion Matrix</h4>",unsafe_allow_html=True)
