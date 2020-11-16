@@ -27,6 +27,8 @@ import joblib,os
 import nltk
 import string
 import re
+from PIL import Image
+
 #import contractions
 from nltk.corpus import stopwords, wordnet
 from nltk.tokenize import word_tokenize
@@ -49,9 +51,9 @@ st.set_option('deprecation.showPyplotGlobalUse', False)
 
 # Data dependencies
 import pandas as pd
-
+import numpy as np
 # Vectorizer
-news_vectorizer = open("resources/tfidfvect.pkl","rb")
+news_vectorizer = open("resources/count_vect.pkl","rb")
 tweet_cv = joblib.load(news_vectorizer) # loading your vectorizer from the pkl file
 
 # Load your raw data
@@ -107,6 +109,7 @@ def word_count(train):
         for word in message:
             cnt[word] +=1
     return cnt.most_common(20)
+
 
 st.cache(suppress_st_warning=True,allow_output_mutation=True)
 def data_cleaning(df):
@@ -206,19 +209,33 @@ def wordcloud_visualizer(df):
     st.pyplot(fig)
 
 
+def tweet_cloud(df):
+	mask = np.array(Image.open('10wmt-superJumbo-v4.jpg'))
+	words = df['message']
+	allwords = []
+	for wordlist in words:
+		allwords += wordlist
+		mostcommon = FreqDist(allwords).most_common(10000)
+		wordcloud = WordCloud(width=1000, height=1000, mask = mask, background_color='white').generate(str(mostcommon))
+		fig = plt.figure(figsize=(30,10), facecolor='white')
+		plt.imshow(wordcloud, interpolation="bilinear")
+		plt.axis('off')
+		plt.tight_layout(pad=0)
+		st.pyplot(fig)
+
 def prediction_output(predict):
     if predict[0]==-1:
         output="Anti"
-        st.error("Text Categorized as: {}".format(output))
+        st.error("Text Sentiment Categorized as: {}".format(output))
     elif predict[0]==0:
         output="Neutral"
-        st.info("Text Categorized as: {}".format(output))
+        st.info("Text Sentiment Categorized as: {}".format(output))
     elif predict[0]==1:
         output ="Pro"
-        st.success("Text Categorized as: {}".format(output))
+        st.success("Text Sentiment Categorized as: {}".format(output))
     else:
         output = "News"
-        st.warning("Text Categorized as: {}".format(output))
+        st.warning("Text Sentiment Categorized as: {}".format(output))
 
 st.cache(suppress_st_warning=True,allow_output_mutation=True)
 def markup(selection):
@@ -252,7 +269,7 @@ def main():
 
 	# Creating sidebar with selection box -
 	# you can create multiple pages this way
-	options = ["About Predict","Text Classification","Exploratory Data Analysis","Model Performance Evaluation","Our Team"]
+	options = ["About Predict","Text Classification","Exploratory Data Analysis","Model Metrics Evaluation","Our Team"]
 	selection = st.sidebar.selectbox("Choose Option", options)
 	# Building out the "Information" page
 	if selection == "About Predict":
@@ -269,7 +286,7 @@ def main():
 			<style></style>
 			<div class="d-flex justify-content-center">
 				<p class="font-weight-bold"><i>Text analytics</i> is the automated process of translating large volumes of unstructured text into quantitative data to uncover insights, trends, and patterns. combined with data visualization tools, this technique enables companies to understand the story behind the numbers and make better decisions. In this notebook we will look into a concept called sentiment analysis using tweets.
- <i>Sentiment analysis</i> (also known as opinion mining or emotion AI) refers to the use of natural language processing, text analysis, computational linguistics, and biometrics to systematically identify, extract, quantify, and study affective states and subjective information</p>
+ 		<i>Sentiment analysis</i> (also known as opinion mining or emotion AI) refers to the use of natural language processing, text analysis, computational linguistics, and biometrics to systematically identify, extract, quantify, and study affective states and subjective information</p>
 			</div>
 			"""
 		)
@@ -290,25 +307,42 @@ def main():
 	if selection == "Text Classification":
 		markup(selection)
 		# Creating a text box for user input
-		models = ["Support Vector Classifier","Logisitic Regression Classifier","Optimized Support Vector Classifier"]
+		models = ["Ridge Classifier","Stochastic Gradient Classifer","Support Vector Classifier","Linear Support Vector Classifier","Logisitic Regression Classifier"]
 		modeloptions = st.selectbox("Choose Predictive Classification Model",models)
-		if modeloptions == "Support Vector Classifier":
+		if modeloptions =="Ridge Classifier":
+			st.info("The Ridge Classifier,  based on Ridge regression method, converts the label data into [-1, 1] and solves the problem with regression method. The highest value in prediction is accepted as a target class and for multiclass data muilti-output regression is applied.")
 			tweet_text = st.text_area("Enter Text","Type Here")
-			if st.button("Predict text class with Support Vector Classifier"):
-				pred = joblib.load(open(os.path.join("resources/LinearSVC.pkl"),"rb"))
+			if st.button("Predict text class with Ridge Classifier"):
+				pred = joblib.load(open(os.path.join("resources/ridge_tfidf.pkl"),"rb"))
 				predict = pred.predict([tweet_text])
 				prediction_output(predict)
+		if modeloptions =="Stochastic Gradient Classifer":
+			st.info("Stochastic Gradient Descent (SGD) Classifier is a simple yet very efficient approach to fitting linear classifiers and regressors under convex loss functions such as (linear) Support Vector Machines and Logistic Regression.")
+			tweet_text = st.text_area("Enter Text","Type Here")
+			if st.button("Predict text class with Stochastic Gradient Classifer"):
+				pred = joblib.load(open(os.path.join("resources/SGD_tfidf.pkl"),"rb"))
+				predict = pred.predict([tweet_text])
+				prediction_output(predict)
+		if modeloptions == "Linear Support Vector Classifier":
+			st.info("SVM or Support Vector Machine is a linear model for classification and regression problems.It constructs a hyperplane or set of hyperplanes in a high- or infinite-dimensional space, which can be used for classification, regression.")
+			tweet_text = st.text_area("Enter Text","Type Here")
+			if st.button("Predict text class with Linear Support Vector Classifier"):
+				pred = joblib.load(open(os.path.join("resources/Lsvc_tfidf.pkl"),"rb"))
+				predict = pred.predict([tweet_text])
+				prediction_output(predict)
+		elif modeloptions =="Support Vector Classifier":
+			st.info("a support-vector machine constructs a hyperplane or set of hyperplanes in a high- or infinite-dimensional space, which can be used for classification, regression, or other tasks like outliers detection.")
+			svc_text = st.text_area("Enter Text","Type Here")
+			if st.button("Predict text class with Support Vector Classifier"):
+				pred = joblib.load(open(os.path.join("resources/SVCGrid.pkl"),"rb"))
+				predict = pred.predict([svc_text])
+				prediction_output(predict)
 		elif modeloptions =="Logisitic Regression Classifier":
+			st.info("the logistic model (or logit model) is used to model the probability of a certain class or event existing such as pass/fail, win/lose, alive/dead or healthy/sick. This can be extended to model several classes of events such as determining whether an image contains a cat, dog, lion, etc.")
 			logi_text = st.text_area("Enter Text","Type Here")
 			if st.button("Predict text class with Logisitic Regression Classifier"):
-				pred = joblib.load(open(os.path.join("resources/LogisticReg.pkl"),"rb"))
+				pred = joblib.load(open(os.path.join("resources/logreg_tfidf.pkl"),"rb"))
 				predict = pred.predict([logi_text])
-				prediction_output(predict)
-		elif modeloptions =="Optimized Support Vector Classifier":
-			svc_text = st.text_area("Enter Text","Type Here")
-			if st.button("Predict text class with Optimized Support Vector Classifier"):
-				pred = joblib.load(open(os.path.join("resources/LogisticReg.pkl"),"rb"))
-				predict = pred.predict([svc_text])
 				prediction_output(predict)
 	
 	if selection == "Exploratory Data Analysis":
@@ -332,11 +366,125 @@ def main():
 			popularwords_visualizer(train)
 		elif visualselection == "Word Cloud Analysis":
 			print('..... Creating the WordClouds for sentiment classes')
+			tweet_cloud(train)
 			title_tag("Word Cloud Analysis")
 			wordcloud_visualizer(train)
 
-	if selection == "Model Performance Evaluation":
+	if selection == "Model Metrics Evaluation":
 		title_tag(selection)
+		st.markdown("<h3 style='color:#00ACEE'>Performance Metrics for model evaluation</h3>",unsafe_allow_html=True)
+		components.html(
+			"""
+			<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css" integrity="sha384-TX8t27EcRE3e/ihU7zmQxVncDAy5uIKz4rEkgIXeMed4M0jlfIDPvg6uqKI2xXr2" crossorigin="anonymous" />
+			<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+			<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ho+j7jyWK8fNQe+A12Hb8AhRq26LrZ/JpcUGGOn+Y7RsweNrtN/tE3MoK7ZeZDyx" crossorigin="anonymous"></script>
+			<div class="d-flex justify-content-center mb-0">
+				<p class="font-weight-bold">We will evaluate our models using the the F1 Score which is the number of true instances for each label.</p>
+			</div>
+			"""
+		)
+		modelselection = ["Linear Support Vector Classifier","Support Vector Classifier","Ridge Classifier","Logisitic Regression Classifier","Stochastic Gradient Classifier"]
+		modeloptions = st.selectbox("Choose Model Metrics By Model Type",modelselection)
+		if modeloptions =="Linear Support Vector Classifier":
+			title_tag("Evaluation Of the Linear Support Vector Classifier")
+			st.markdown("<h4 style='color:#00ACEE; text-align:center !important'>Linear Support Vector Classifier Confusion Matrix</h4>",unsafe_allow_html=True)
+			st.image('LinearSVC-cm.png',use_column_width=True)
+			st.markdown("<h4 style='color:#00ACEE; text-align:center !important'>Linear Support Vector Classifier F1-Score predictive accuracy</h4>",unsafe_allow_html=True)
+			st.image('LinearSVC-f1-score.png',use_column_width=True)
+			st.markdown("""<div>
+				<h5 style='color:#00ACEE'>Key Observations</h5>
+				<ul>
+					<li>We see that the LinearSVC model did a far better job at classifiying Pro and News sentiment classes compared to Decision Tree and RandomForest models with both classes achieving an f1 score of 0.85 and 0.81 respectively
+					</li>
+					<li>
+						The LinearSVC model also did a far better job at classifying Anti sentiment class comapred to both the Decision tree and the Randrom Forest
+					</li>
+					<li>
+						There was a slight improvement in the classification of neutral tweets with the LinearSVC, which is by far overshadowed by the improvements we see in other sentiments classes
+					</li>
+					<li>
+						The LinearSVC has done a better job overall in classifying the sentiments, we see that Anti and Neutral sentiments have almost the same score, same applies with Pro and News sentiments which is consistent with the distribution of the data between the sentiment classes
+					</li>
+				</ul>
+			</div>""",unsafe_allow_html=True)
+		elif modeloptions =="Support Vector Classifier":
+			title_tag("Evaluation Of the Support Vector Classifier")
+			st.markdown("<h4 style='color:#00ACEE; text-align:center !important'>Support Vector Classifier Confusion Matrix</h4>",unsafe_allow_html=True)
+			st.image('resources/SCV-cm.png',use_column_width=True)
+			st.markdown("<h4 style='color:#00ACEE; text-align:center !important'>Linear Support Vector Classifier F1-Score predictive accuracy</h4>",unsafe_allow_html=True)
+			st.image('resources/SVC-f1-score.png',use_column_width=True)
+			st.markdown("""<div>
+				<h5 style='color:#00ACEE'>Key Observations</h5>
+				<ul>
+					<li>
+						Much like the LinearSVC we see that the the SVC does a really good job at classifying Pro sentiment class with a score of 0.81, followed by the News sentiment class with an f1 score of over 0.77.
+					</li>
+					<li>
+						Unlike most of the models we've build this far, the Support Vector Classifier struggle more with classifying the Antisentiment class
+					</li>
+				</ul>
+			</div>""",unsafe_allow_html=True)
+		elif modeloptions =="Ridge Classifier":
+			title_tag("Evaluation Of the Ridge Classifier")
+			st.markdown("<h4 style='color:#00ACEE; text-align:center !important'>Ridge Classifier Confusion Matrix</h4>",unsafe_allow_html=True)
+			st.image('LinearSVC-cm.png',use_column_width=True)
+			st.markdown("<h4 style='color:#00ACEE; text-align:center !important'>Linear Support Vector Classifier F1-Score predictive accuracy</h4>",unsafe_allow_html=True)
+			st.image('LinearSVC-f1-score.png',use_column_width=True)
+		elif modeloptions =="Logisitic Regression Classifier":
+			title_tag("Evaluation Of the Logisitic Regression Classifier")
+			st.markdown("<h4 style='color:#00ACEE; text-align:center !important'>Logisitic Regression Classifier Confusion Matrix</h4>",unsafe_allow_html=True)
+			st.image('resources/LR-cm.png',use_column_width=True)
+			st.markdown("<h4 style='color:#00ACEE; text-align:center !important'>Logisitic Regression Classifier F1-Score predictive accuracy</h4>",unsafe_allow_html=True)
+			st.image('resources/LR-f1-score.png',use_column_width=True)
+			st.markdown("""<div>
+				<h5 style='color:#00ACEE'>Key Observations</h5>
+				<ul>
+					<li>
+						The Logistic Regression Classifier performed almost as good as the LinearSVC at classifying each sentiment class with <b>Pro</b> and <b>News</b> sentiment class achieving f1 scores of 84 and 81 respetively
+					</li>
+				</ul>
+			</div>""",unsafe_allow_html=True)
+		elif modeloptions =="Stochastic Gradient Classifier":
+			title_tag("Evaluation Of the Stochastic Gradient Classifier")
+			st.markdown("<h4 style='color:#00ACEE; text-align:center !important'>Stochastic Gradient Classifier Confusion Matrix</h4>",unsafe_allow_html=True)
+			st.image('resources/SGD-cm.png',use_column_width=True)
+			st.markdown("""<div>
+				<h5 style='color:#00ACEE'>Key Observations</h5>
+				<p>
+					A Classification report is used to measure the quality of predictions from a classification algorithm.<br/>
+					The confusion matrix heatmap shows the model's ability to classify positive samples, each class achieving a recall score of:
+				</p>
+				<ul>
+					<li>
+						Anti Climate Change : 0.54
+					</li>
+					<li>
+						Neutral : 0.53
+					</li>
+					<li>
+						Pro : 0.85
+					</li>
+					<li>
+						News : 0.84
+					</li>
+				</ul>
+				<p>
+					SGD classifier scored the highest in classification of positive classes for anti and neutral sentiment classes despite incorretly classsifying anti and neutral sentiment classes as Pro sentiment class 35% and 42% of the time respectively
+				</p>
+			</div>""",unsafe_allow_html=True)
+			st.markdown("<h4 style='color:#00ACEE; text-align:center !important'>Stochastic Gradient Classifier F1-Score predictive accuracy</h4>",unsafe_allow_html=True)
+			st.image('resources/SGD-f1-score.png',use_column_width=True)
+			st.markdown("""<div>
+				<h5 style='color:#00ACEE'>Key Observations</h5>
+				<p>
+					The above bar graph shows the f1 score for each sentiment class using Stochastic Gradient Descent classifier
+				</p>
+				<ul>
+					<li>
+						The SGD classifier is just as good at classifying Pro sentiment classs as the LinearSVC both achieving an f1 score of 0.84 however falls short in classifying the rest of the sentiment classes
+					</li>
+				</ul>
+			</div>""",unsafe_allow_html=True)
 # Required to let Streamlit instantiate our web app.  
 if __name__ == '__main__':
 	main()
