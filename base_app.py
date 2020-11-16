@@ -59,6 +59,7 @@ tweet_cv = joblib.load(news_vectorizer) # loading your vectorizer from the pkl f
 # Load your raw data
 raw = pd.read_csv("resources/train.csv")
 retweet = 'RT'
+mask = np.array(Image.open('resources/10wmt-superJumbo-v4.jpg'))
 import streamlit.components.v1 as components
 
 st.cache(suppress_st_warning=True,allow_output_mutation=True)
@@ -189,20 +190,20 @@ def wordcloud_visualizer(df):
     anti = df['message'][df['sentiment']==2].str.join(' ')
     #Visualize each sentiment class
     fig, axis = plt.subplots(nrows=2, ncols=2, figsize=(18, 12))
-    news_wordcloud = WordCloud(width=900, height=600, background_color='white', colormap='winter').generate(str(news))
+    news_wordcloud = WordCloud(width=900, height=900, background_color='white', colormap='winter').generate(str(news))
     axis[0, 0].imshow(news_wordcloud)
     axis[0, 0].set_title('News Class',fontsize=14)
     axis[0, 0].axis("off") 
-    neutral_wordcloud = WordCloud(width=900, height=600, background_color='white', colormap='winter', min_font_size=10).generate(str(neutral))
+    neutral_wordcloud = WordCloud(width=900, height=900, background_color='white', colormap='winter', min_font_size=10).generate(str(neutral))
     axis[1, 0].imshow(neutral_wordcloud)
     axis[1, 0].set_title('Neutral Class',fontsize=14)
     axis[1, 0].axis("off") 
     
-    pro_wordcloud = WordCloud(width=900, height=600, background_color='white', colormap='winter', min_font_size=10).generate(str(pro))
+    pro_wordcloud = WordCloud(width=900, height=900, background_color='white', colormap='winter', min_font_size=10).generate(str(pro))
     axis[0, 1].imshow(pro_wordcloud)
     axis[0, 1].set_title('Pro Class',fontsize=14)
     axis[0, 1].axis("off") 
-    anti_wordcloud = WordCloud(width=900, height=600, background_color='white', colormap='winter', min_font_size=10).generate(str(anti))
+    anti_wordcloud = WordCloud(width=900, height=900, background_color='white', colormap='winter', min_font_size=10).generate(str(anti))
     axis[1, 1].imshow(anti_wordcloud)
     axis[1, 1].set_title('Anti Class',fontsize=14)
     axis[1, 1].axis("off")
@@ -210,18 +211,18 @@ def wordcloud_visualizer(df):
 
 
 def tweet_cloud(df):
-	mask = np.array(Image.open('10wmt-superJumbo-v4.jpg'))
+	mask = np.array(Image.open('resources/10wmt-superJumbo-v4.jpg'))
 	words = df['message']
 	allwords = []
 	for wordlist in words:
 		allwords += wordlist
-		mostcommon = FreqDist(allwords).most_common(10000)
-		wordcloud = WordCloud(width=1000, height=1000, mask = mask, background_color='white').generate(str(mostcommon))
-		fig = plt.figure(figsize=(30,10), facecolor='white')
-		plt.imshow(wordcloud, interpolation="bilinear")
-		plt.axis('off')
-		plt.tight_layout(pad=0)
-		st.pyplot(fig)
+	mostcommon = FreqDist(allwords).most_common(10000)
+	wordcloud = WordCloud(width=1000, height=1000, mask = mask, background_color='white').generate(str(mostcommon))
+	fig = plt.figure(figsize=(30,10), facecolor='white')
+	plt.imshow(wordcloud, interpolation="bilinear")
+	plt.axis('off')
+	plt.tight_layout(pad=0)
+	st.pyplot(fig)
 
 def prediction_output(predict):
     if predict[0]==-1:
@@ -303,6 +304,7 @@ def main():
 			"""
 		)
 		st.image('https://dropnerblog.files.wordpress.com/2019/12/twitter-bird-animated-logo.gif?w=300&zoom=2',use_column_width=True)
+		st.markdown("<h3 style='color:#00ACEE'>Brought to you By team 3#Loud_n_Cloud</h3><br/>",unsafe_allow_html=True)
 	# Building out the predication page
 	if selection == "Text Classification":
 		markup(selection)
@@ -366,10 +368,10 @@ def main():
 			popularwords_visualizer(train)
 		elif visualselection == "Word Cloud Analysis":
 			print('..... Creating the WordClouds for sentiment classes')
-			tweet_cloud(train)
 			title_tag("Word Cloud Analysis")
 			wordcloud_visualizer(train)
-
+			title_tag("Word Cloud for the entire Data set")
+			tweet_cloud(train)
 	if selection == "Model Metrics Evaluation":
 		title_tag(selection)
 		st.markdown("<h3 style='color:#00ACEE'>Performance Metrics for model evaluation</h3>",unsafe_allow_html=True)
